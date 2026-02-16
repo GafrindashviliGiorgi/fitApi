@@ -1,6 +1,6 @@
 import React, { useState, useRef, useEffect } from 'react';
 
-// SVG Icons as components
+// SVG Icons
 const SendIcon = () => (
   <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
     <line x1="22" y1="2" x2="11" y2="13"></line>
@@ -48,6 +48,88 @@ const SparklesIcon = () => (
   </svg>
 );
 
+// Smart response generator
+const generateResponse = (userInput) => {
+  const input = userInput.toLowerCase();
+  
+  // Greeting responses
+  if (input.match(/^(hi|hello|hey|greetings)/)) {
+    return "Hello! I'm your AI assistant. How can I help you today?";
+  }
+  
+  // How are you
+  if (input.match(/how are you|how're you/)) {
+    return "I'm doing great, thank you for asking! I'm here and ready to help you with anything you need. What's on your mind?";
+  }
+  
+  // Name questions
+  if (input.match(/what'?s? your name|who are you/)) {
+    return "I'm an AI Chat Assistant, powered by advanced language models. I'm here to answer questions, help with tasks, and have conversations!";
+  }
+  
+  // Help
+  if (input.match(/help|what can you do/)) {
+    return "I can help you with:\n• Answering questions\n• Providing information\n• Having conversations\n• Giving suggestions\n• And much more!\n\nJust ask me anything!";
+  }
+  
+  // Time
+  if (input.match(/what time|current time/)) {
+    return `The current time is ${new Date().toLocaleTimeString()}`;
+  }
+  
+  // Date
+  if (input.match(/what date|today'?s? date/)) {
+    return `Today is ${new Date().toLocaleDateString('en-US', { weekday: 'long', year: 'numeric', month: 'long', day: 'numeric' })}`;
+  }
+  
+  // Weather (mock)
+  if (input.match(/weather/)) {
+    return "I don't have access to real-time weather data, but you can check weather.com or your local weather service for current conditions!";
+  }
+  
+  // Math
+  if (input.match(/(\d+)\s*[\+\-\*\/]\s*(\d+)/)) {
+    try {
+      const result = eval(input.match(/[\d\+\-\*\/\.\s]+/)[0]);
+      return `The answer is: ${result}`;
+    } catch (e) {
+      return "I can help with basic math! Try something like '5 + 3' or '10 * 2'";
+    }
+  }
+  
+  // Thank you
+  if (input.match(/thank you|thanks|thx/)) {
+    return "You're very welcome! Feel free to ask if you need anything else. 😊";
+  }
+  
+  // Goodbye
+  if (input.match(/bye|goodbye|see you|farewell/)) {
+    return "Goodbye! It was nice chatting with you. Come back anytime!";
+  }
+  
+  // Joke
+  if (input.match(/joke|funny|make me laugh/)) {
+    const jokes = [
+      "Why don't scientists trust atoms? Because they make up everything!",
+      "Why did the scarecrow win an award? He was outstanding in his field!",
+      "What do you call a fake noodle? An impasta!",
+      "Why don't eggs tell jokes? They'd crack each other up!",
+      "What did one wall say to the other? I'll meet you at the corner!"
+    ];
+    return jokes[Math.floor(Math.random() * jokes.length)];
+  }
+  
+  // Default responses
+  const defaultResponses = [
+    `That's an interesting question about "${userInput}". While I'm a demo chatbot, I'd love to help! In a production version, I would provide detailed information about your query.`,
+    `I understand you're asking about "${userInput}". This demo showcases the chat interface. A real AI would give you comprehensive answers!`,
+    `Thanks for your message! In a full implementation, I would analyze "${userInput}" and provide you with helpful, accurate information.`,
+    `Great question! This is a demo interface to show the chat functionality. A connected AI would give you detailed insights about "${userInput}".`
+  ];
+  
+  return defaultResponses[Math.floor(Math.random() * defaultResponses.length)];
+};
+
 export default function ChatBot() {
   const [messages, setMessages] = useState([]);
   const [input, setInput] = useState('');
@@ -68,56 +150,20 @@ export default function ChatBot() {
 
     const userMessage = { role: 'user', content: input };
     setMessages(prev => [...prev, userMessage]);
+    const currentInput = input;
     setInput('');
     setIsLoading(true);
 
-    try {
-      // Build conversation history
-      const conversationMessages = [...messages, userMessage].map(msg => ({
-        role: msg.role,
-        content: msg.content
-      }));
-
-      const response = await fetch('https://openrouter.ai/api/v1/chat/completions', {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-          'Authorization': 'Bearer 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',
-          'HTTP-Referer': window.location.origin,
-          'X-Title': 'AI Chat Website'
-        },
-        body: JSON.stringify({
-          model: 'openai/gpt-3.5-turbo',
-          messages: conversationMessages,
-          max_tokens: 2000
-        })
-      });
-
-      const data = await response.json();
-
-      if (!response.ok) {
-        console.error('API Response:', data);
-        throw new Error(data.error?.message || `API error: ${response.status}`);
-      }
-
-      if (data.choices && data.choices[0] && data.choices[0].message) {
-        const assistantMessage = {
-          role: 'assistant',
-          content: data.choices[0].message.content
-        };
-        setMessages(prev => [...prev, assistantMessage]);
-      } else {
-        throw new Error('Invalid response format from API');
-      }
-    } catch (error) {
-      console.error('Error details:', error);
-      setMessages(prev => [...prev, {
+    // Simulate API delay
+    setTimeout(() => {
+      const botResponse = generateResponse(currentInput);
+      const assistantMessage = {
         role: 'assistant',
-        content: `Sorry, there was an error: ${error.message}. Please try again.`
-      }]);
-    } finally {
+        content: botResponse
+      };
+      setMessages(prev => [...prev, assistantMessage]);
       setIsLoading(false);
-    }
+    }, 500 + Math.random() * 1000); // Random delay between 0.5-1.5 seconds
   };
 
   return (
@@ -132,7 +178,7 @@ export default function ChatBot() {
             </div>
             <div>
               <h1 className="text-2xl font-bold text-white">AI Chat Assistant</h1>
-              <p className="text-purple-100 text-sm">Powered by GPT-3.5 Turbo</p>
+              <p className="text-purple-100 text-sm">Demo Mode - No API Required</p>
             </div>
           </div>
         </div>
@@ -147,6 +193,7 @@ export default function ChatBot() {
                 </div>
                 <h2 className="text-xl font-semibold mb-2">Start a conversation</h2>
                 <p className="text-sm">Ask me anything and I'll help you out!</p>
+                <p className="text-xs mt-2 opacity-75">Try: "Hello", "Tell me a joke", or "What time is it?"</p>
               </div>
             </div>
           ) : (

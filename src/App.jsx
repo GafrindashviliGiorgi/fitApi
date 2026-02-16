@@ -6,7 +6,7 @@ import Home from './Routes/Home'
 import Food from './Routes/Food'
 import BuyFood from './Routes/BuyFood'
 import Snaks from './Routes/Snaks'
-import ChatBot from './routes/ChatBot'  // ← შეცვლილი
+import ChatBot from './routes/Chatbot'  // ← შეცვლილი
 
 function App() {
   return (
